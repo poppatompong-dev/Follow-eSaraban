@@ -12,6 +12,7 @@ const INITIAL_FORM = {
   q7_technical: [],
   q8_support: [],
   q9_overall: 0,
+  feedback: '',
 }
 
 export function useSurveyForm() {

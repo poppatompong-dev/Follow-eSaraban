@@ -40,6 +40,7 @@ export default function SurveyView({ form, config, responseCount, onSubmitSucces
       q7_technical: (formData.q7_technical || []).join('|'),
       q8_support:   (formData.q8_support   || []).join('|'),
       q9_overall:   formData.q9_overall  || 0,
+      feedback:     formData.feedback    || '',
       submitted_at: new Date().toISOString(),
     }
 

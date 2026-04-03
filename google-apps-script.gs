@@ -16,7 +16,7 @@ const HEADERS = [
   'id', 'department', 'role', 'q1_adoption', 'q2_frequency',
   'q3_ease', 'q4_speed', 'q5_vs_paper',
   'q6_pain', 'q7_technical', 'q8_support',
-  'q9_overall', 'submitted_at'
+  'q9_overall', 'feedback', 'submitted_at'
 ];
 
 function getSheet() {

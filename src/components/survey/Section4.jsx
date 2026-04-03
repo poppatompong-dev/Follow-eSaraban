@@ -41,6 +41,20 @@ export default function Section4({ formData, setField, toggleCheckbox, onBack, o
         <StarRating value={formData.q9_overall} onChange={v => setField('q9_overall', v)} />
       </div>
 
+      {/* Q10 — Additional Feedback */}
+      <div className="mb-8">
+        <label className="block text-fluid-sm font-semibold text-teal-200 mb-3" htmlFor="feedback">
+          10. ข้อเสนอแนะเพิ่มเติมเพื่อการพัฒนาระบบ
+        </label>
+        <textarea
+          id="feedback"
+          className="w-full bg-white/5 border border-teal-400/20 rounded-xl p-4 text-white text-fluid-sm focus:outline-none focus:border-teal-400/60 focus:ring-1 focus:ring-teal-400/60 transition-all placeholder:text-teal-200/30 resize-y min-h-[100px]"
+          placeholder="พิมพ์ข้อเสนอแนะของท่านที่นี่..."
+          value={formData.feedback}
+          onChange={(e) => setField('feedback', e.target.value)}
+        />
+      </div>
+
       {/* Divider */}
       <div className="h-px bg-white/10 mb-6" />
 

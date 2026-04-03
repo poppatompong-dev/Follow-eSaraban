@@ -9,6 +9,7 @@ import StatHeader    from './StatHeader'
 import AdminPanel    from './AdminPanel'
 import ChartCard     from './ChartCard'
 import InsightCard   from './InsightCard'
+import FeedbackList  from './FeedbackList'
 import ExportSection from './ExportSection'
 import { useToast }  from '../../context/ToastContext'
 import { Q1_OPTS, Q2_OPTS, DEPARTMENTS } from '../../lib/constants'
@@ -50,7 +51,12 @@ export default function AnalyticsView({ responses, adminVisible, refetch }) {
   // ── Clear all test data ──────────────────────────────────────
   async function handleClear() {
     if (responses.length === 0) { showToast('ไม่มีข้อมูลให้ลบ', 'info'); return }
-    if (!confirm(`⚠️ ต้องการลบข้อมูลทั้งหมด ${responses.length} รายการ?\n\nการกระทำนี้ไม่สามารถยกเลิกได้`)) return
+    const pwd = prompt(`⚠️ ลบล้างข้อมูลทั้งหมด ${responses.length} รายการ\nการกระทำนี้ไม่สามารถยกเลิกได้!\n\nกรุณาใส่รหัสผ่านเพื่อยืนยัน:`)
+    if (pwd === null) return // User cancelled
+    if (pwd !== 'admin123') {
+      showToast('รหัสผ่านไม่ถูกต้อง', 'error')
+      return
+    }
 
     if (!SHEET_ENDPOINT || SHEET_ENDPOINT === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
       showToast('Demo mode — ไม่มี endpoint', 'info'); return
@@ -195,8 +201,12 @@ export default function AnalyticsView({ responses, adminVisible, refetch }) {
         <InsightCard title="⚠️ ปัญหาหลัก"           responses={responses} field="q6_pain"     emptyText="ยังไม่มีปัญหา" />
         <InsightCard title="🔧 ปัญหาเทคนิค"         responses={responses} field="q7_technical" emptyText="ไม่พบปัญหา" />
         <InsightCard title="💡 ความต้องการสนับสนุน" responses={responses} field="q8_support"   emptyText="ไม่มีความต้องการ" />
-        <div className="glass-insight p-5 md:p-6">
-          <h3 className="text-fluid-base font-semibold text-teal-100 mb-4">🎯 ข้อเสนอแนะ</h3>
+        <div className="glass-insight p-5 md:p-6 lg:col-span-2">
+          <h3 className="text-fluid-base font-semibold text-teal-100 mb-4">💬 ข้อเสนอแนะเพิ่มเติม</h3>
+          <FeedbackList responses={responses} />
+        </div>
+        <div className="glass-insight p-5 md:p-6 lg:col-span-2">
+          <h3 className="text-fluid-base font-semibold text-teal-100 mb-4">🎯 ข้อเสนอแนะจากระบบ</h3>
           <Recommendations responses={responses} />
         </div>
       </div>

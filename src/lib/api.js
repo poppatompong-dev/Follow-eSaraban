@@ -25,5 +25,6 @@ export const COLUMNS = [
   'q7_technical',
   'q8_support',
   'q9_overall',
+  'feedback',
   'submitted_at',
 ]

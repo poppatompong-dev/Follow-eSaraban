@@ -9,12 +9,12 @@ export default function ExportSection({ responses }) {
       return
     }
 
-    const header = ['Department','Role','Q1-Adoption','Q2-Frequency','Q3-Ease','Q4-Speed','Q5-vs-Paper','Q6-Pain','Q7-Technical','Q8-Support','Q9-Overall','Submitted']
+    const header = ['Department','Role','Q1-Adoption','Q2-Frequency','Q3-Ease','Q4-Speed','Q5-vs-Paper','Q6-Pain','Q7-Technical','Q8-Support','Q9-Overall','Feedback','Submitted']
     const rows = responses.map(r => [
       r.department, r.role, r.q1_adoption, r.q2_frequency,
       r.q3_ease, r.q4_speed, r.q5_vs_paper,
       r.q6_pain, r.q7_technical, r.q8_support,
-      r.q9_overall, r.submitted_at,
+      r.q9_overall, r.feedback, r.submitted_at,
     ])
 
     const csv = [header, ...rows]
