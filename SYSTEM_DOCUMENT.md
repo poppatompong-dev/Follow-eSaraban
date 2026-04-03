@@ -24,7 +24,7 @@
 ### 1.3 URL การเข้าถึงระบบ
 | ชื่อ | URL |
 |------|-----|
-| **Production (GitHub Pages)** | `https://poppatompong-dev.github.io/Follow-eSaraban/` |
+| **Production (Vercel)** | *(กำหนดหลัง deploy บน Vercel)* |
 | **Source Code** | `https://github.com/poppatompong-dev/Follow-eSaraban` |
 | **Google Sheets (ฐานข้อมูล)** | Sheet ID: `1d-Svs7iHX3Vmcnm5Vrh5Xg8_wQD70yRyrtx6R37uSJQ` |
 
@@ -69,9 +69,10 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│              CI/CD Pipeline (GitHub Actions)                     │
+│              CI/CD Pipeline (Vercel)                             │
 │                                                                  │
-│  git push → Build (npm run build) → Deploy → GitHub Pages       │
+│  git push → Vercel detects push → Build (npm run build) →       │
+│  Deploy → Vercel CDN (SPA routing via vercel.json)               │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -89,8 +90,8 @@
 | **Icons** | Lucide React | — | UI Icons |
 | **Backend** | Google Apps Script | — | REST-like API |
 | **Database** | Google Sheets | — | Data storage |
-| **Hosting** | GitHub Pages | — | Static file hosting |
-| **CI/CD** | GitHub Actions | — | Auto build & deploy |
+| **Hosting** | Vercel | — | Static file hosting + SPA routing |
+| **CI/CD** | Vercel (Git Integration) | — | Auto build & deploy on push |
 
 ---
 
@@ -147,8 +148,9 @@ eSaraban_Survay/
 │
 ├── google-apps-script.gs           # โค้ด Backend (copy ไปวางใน Apps Script)
 ├── index.html                      # HTML entry point
+├── vercel.json                     # Vercel SPA routing config
 ├── package.json                    # Dependencies
-├── vite.config.js                  # Vite config (base: '/Follow-eSaraban/')
+├── vite.config.js                  # Vite config (base: '/')
 ├── tailwind.config.js              # Tailwind + custom tokens
 ├── postcss.config.js               # PostCSS config
 └── .gitignore
@@ -419,22 +421,31 @@ showToast('ข้อความ', 'success' | 'error' | 'warning' | 'info')
 
 ## 10. Deployment
 
-### 10.1 GitHub Actions Workflow (`.github/workflows/deploy.yml`)
+### 10.1 Vercel Configuration
 
-```yaml
-trigger: push to main branch
-jobs:
-  build:  → npm ci → npm run build → upload dist/
-  deploy: → deploy to GitHub Pages
+**ไฟล์:** `vercel.json`
+
+```json
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
 ```
 
-**เวลาที่ใช้:** ประมาณ 1–2 นาทีหลัง `git push`
+Rewrite rule นี้ทำให้ทุก URL ชี้ไปที่ `index.html` ซึ่งจำเป็นสำหรับ React SPA
 
-### 10.2 ขั้นตอนการ Deploy ครั้งแรก
+**`vite.config.js`:** `base: '/'` (ต่างจาก GitHub Pages ที่ต้องระบุ sub-path)
 
-1. GitHub repo → **Settings → Pages**
-2. Source: เลือก **"GitHub Actions"** (ไม่ใช่ Branch)
-3. Save → รอ build ครั้งแรก
+**เวลาที่ใช้:** ประมาณ 30–60 วินาทีหลัง `git push`
+
+### 10.2 ขั้นตอนการ Deploy ครั้งแรก (Vercel)
+
+1. ไปที่ [vercel.com](https://vercel.com) → **Add New Project**
+2. เชื่อม GitHub repo: `poppatompong-dev/Follow-eSaraban`
+3. Framework Preset: **Vite** (จะตั้งค่า Build Command: `npm run build`, Output: `dist` อัตโนมัติ)
+4. กด **Deploy**
+5. รับ URL เช่น `https://follow-esaraban.vercel.app`
 
 ### 10.3 ขั้นตอนการ Deploy ปรับปรุงโค้ด
 
@@ -444,7 +455,7 @@ git commit -m "feat: description"
 git push
 ```
 
-GitHub Actions จะ build + deploy อัตโนมัติ
+Vercel จะ build + deploy อัตโนมัติทุกครั้งที่ push ไปที่ branch main
 
 ### 10.4 ขั้นตอน Deploy Google Apps Script (เมื่อแก้ไข .gs)
 
@@ -527,7 +538,8 @@ GitHub Actions จะ build + deploy อัตโนมัติ
 | ส่งแบบสอบถามแล้วไม่บันทึก | Apps Script ไม่ได้ Deploy | Deploy ใหม่แบบ New Deployment |
 | CSV เปิดแล้วอักษรภาษาไทยเสีย | Excel ไม่รู้จัก encoding | เปิดผ่าน Data → From Text/CSV แล้วเลือก UTF-8 |
 | ไม่เห็น column `feedback` ใน Sheets | ใช้ Apps Script เวอร์ชันเก่า | Deploy เวอร์ชันใหม่ที่มี `feedback` ใน HEADERS |
-| GitHub Pages แสดง 404 | `base` ใน vite.config.js ผิด | ตรวจสอบให้ตรงกับชื่อ repo: `/Follow-eSaraban/` |
+| Vercel แสดง 404 เมื่อ refresh | ขาด `vercel.json` rewrite rule | ตรวจสอบว่ามี `vercel.json` ที่ rewrite ทุก path → `index.html` |
+| Vercel แสดงหน้าขาว (blank) | `base` ใน vite.config.js ผิด | ต้องเป็น `base: '/'` ไม่ใช่ `/Follow-eSaraban/` |
 | ปุ่มล้างข้อมูลไม่ทำงาน | ไม่มีข้อมูล หรือ endpoint ไม่พร้อม | ตรวจสอบ console error + ยืนยันมี records |
 
 ---
