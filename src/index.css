@@ -2,9 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Google Fonts are loaded in index.html ─────────────────── */
-
-/* ─── Fluid Type Scale (responsive-design skill) ────────────── */
+/* ─── Fluid Type Scale ───────────────────────────────────────── */
 :root {
   --text-xs:   clamp(0.70rem, 0.65rem + 0.25vw, 0.80rem);
   --text-sm:   clamp(0.83rem, 0.78rem + 0.25vw, 0.95rem);
@@ -13,74 +11,98 @@
   --text-xl:   clamp(1.25rem, 1.10rem + 0.75vw, 1.60rem);
   --text-2xl:  clamp(1.50rem, 1.25rem + 1.25vw, 2.10rem);
   --text-3xl:  clamp(1.80rem, 1.40rem + 2.00vw, 2.70rem);
-
-  /* Fluid spacing */
-  --space-xs:  clamp(0.25rem, 0.2rem + 0.25vw, 0.50rem);
-  --space-sm:  clamp(0.50rem, 0.4rem + 0.50vw, 0.75rem);
-  --space-md:  clamp(1.00rem, 0.8rem + 1.00vw, 1.50rem);
-  --space-lg:  clamp(1.50rem, 1.2rem + 1.50vw, 2.50rem);
-  --space-xl:  clamp(2.00rem, 1.5rem + 2.50vw, 4.00rem);
 }
 
-/* ─── Global Reset ─────────────────────────────────────────── */
+/* ─── Global Reset ───────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
-html, body, #root {
-  height: 100%;
-  /* Use dynamic viewport height to avoid mobile browser chrome issues */
-  min-height: 100dvh;
-}
+html, body, #root { height: 100%; min-height: 100dvh; }
 
-/* ─── Glassmorphism Components (from glassmorphism.md skill) ── */
-/* Rule: bg 5-20%, blur 10-30px, semi-transparent borders only  */
-/* Max 3-5 glass layers per view | no flat borders | light shadows */
+/* ─── Glassmorphism (glassmorphism.md skill) ─────────────────── */
+/* Rule: bg 5–20%, blur 10–30px, semi-transparent borders only    */
+/* Max 3–5 glass layers per view, light/large shadows             */
 @layer components {
-  /* Primary form cards — bright enough for text contrast */
+
+  /* Primary card — bright enough for text contrast */
   .glass-card {
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.09);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.13);
     border-radius: 20px;
-    /* Light, large-spread shadow per skill spec */
-    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 32px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.10);
+    position: relative;
   }
 
-  /* Dark glass — nav bar, admin bar */
+  /* Thick top-edge inner glow — simulates light refraction */
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  /* Navigation / admin bar */
   .glass-dark {
-    background: rgba(0, 0, 0, 0.22);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(5, 30, 28, 0.50);
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
   }
 
-  /* KPI stat cards — subtle tint */
+  /* KPI stat cards */
   .glass-stat {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    border: 1px solid rgba(255,255,255,0.10);
     border-radius: 16px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    position: relative;
+    overflow: hidden;
+  }
+  .glass-stat::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 60%);
+    pointer-events: none;
   }
 
-  /* Analytics insight cards — teal-tinted */
+  /* Teal-tinted insight / export cards */
   .glass-insight {
     background: rgba(13, 148, 136, 0.10);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
-    border: 1px solid rgba(94, 234, 212, 0.18);
+    border: 1px solid rgba(94, 234, 212, 0.16);
     border-radius: 20px;
+    box-shadow: inset 0 1px 0 rgba(94,234,212,0.08);
   }
 
-  /* Radio / checkbox selection highlight */
-  .glass-selected {
-    background: rgba(20, 184, 166, 0.15) !important;
-    border: 1px solid rgba(20, 184, 166, 0.50) !important;
+  /* Minimal glass pill used for small badges */
+  .glass {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 9999px;
+  }
+
+  /* Danger glass — for destructive actions */
+  .glass-danger {
+    background: rgba(239, 68, 68, 0.12);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 16px;
   }
 }
 
 /* ─── Animations ─────────────────────────────────────────────── */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes slideLeft {
@@ -88,30 +110,30 @@ html, body, #root {
   to   { opacity: 1; transform: translateX(0); }
 }
 @keyframes toastIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(24px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 @keyframes pulseSlow {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.45; }
+  50%       { opacity: 0.4; }
 }
 @keyframes float {
   0%, 100% { transform: translateY(0) scale(1); }
-  50%       { transform: translateY(-24px) scale(1.03); }
+  50%       { transform: translateY(-28px) scale(1.04); }
 }
-@keyframes orbRotate {
-  from { transform: rotate(0deg) scale(1); }
-  to   { transform: rotate(360deg) scale(1); }
+@keyframes shimmer {
+  from { background-position: -200% center; }
+  to   { background-position:  200% center; }
 }
 
 @layer utilities {
-  .animate-fade-in    { animation: fadeIn 0.4s ease-out both; }
+  .animate-fade-in    { animation: fadeIn 0.45s ease-out both; }
   .animate-slide-left { animation: slideLeft 0.5s ease-out both; }
-  .animate-toast      { animation: toastIn 0.3s ease-out both; }
+  .animate-toast      { animation: toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both; }
   .animate-pulse-slow { animation: pulseSlow 2s ease-in-out infinite; }
   .animate-float      { animation: float 7s ease-in-out infinite; }
 
-  /* Fluid typography utilities */
+  /* Fluid typography */
   .text-fluid-xs   { font-size: var(--text-xs); }
   .text-fluid-sm   { font-size: var(--text-sm); }
   .text-fluid-base { font-size: var(--text-base); }
@@ -120,10 +142,17 @@ html, body, #root {
   .text-fluid-2xl  { font-size: var(--text-2xl); }
   .text-fluid-3xl  { font-size: var(--text-3xl); }
 
-  /* Touch-target minimum (44×44px per responsive-design skill) */
-  .touch-target {
-    min-height: 44px;
-    min-width: 44px;
+  /* Touch targets — 44×44px min per responsive-design skill */
+  .touch-target { min-height: 44px; min-width: 44px; }
+
+  /* Shimmer gradient text */
+  .text-shimmer {
+    background: linear-gradient(90deg, #5eead4, #34d399, #5eead4);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3s linear infinite;
   }
 
   .progress-fill { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }

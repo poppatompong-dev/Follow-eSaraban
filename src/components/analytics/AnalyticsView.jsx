@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   Chart as ChartJS,
   ArcElement, BarElement, CategoryScale, LinearScale,
@@ -33,9 +34,9 @@ function buildFreqData(responses, field, opts) {
 
 export default function AnalyticsView({ responses, adminVisible, refetch }) {
   const showToast = useToast()
+  const [clearing, setClearing] = useState(false)
   const total = responses.length
 
-  // ── Derived chart data ───────────────────────────────────────
   const adoptionData = buildFreqData(responses, 'q1_adoption', Q1_OPTS)
   const freqData     = buildFreqData(responses, 'q2_frequency', Q2_OPTS)
   const deptData     = buildFreqData(responses, 'department', DEPARTMENTS)
@@ -46,55 +47,97 @@ export default function AnalyticsView({ responses, adminVisible, refetch }) {
       )
     : [0, 0, 0, 0]
 
-  // ── Delete all records ───────────────────────────────────────
+  // ── Clear all test data ──────────────────────────────────────
   async function handleClear() {
     if (responses.length === 0) { showToast('ไม่มีข้อมูลให้ลบ', 'info'); return }
-    if (!confirm(`ต้องการลบข้อมูล ${responses.length} รายการหรือไม่?\n(ไม่สามารถยกเลิกได้)`)) return
+    if (!confirm(`⚠️ ต้องการลบข้อมูลทั้งหมด ${responses.length} รายการ?\n\nการกระทำนี้ไม่สามารถยกเลิกได้`)) return
 
     if (!SHEET_ENDPOINT || SHEET_ENDPOINT === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
-      showToast('Demo mode — ไม่มี endpoint ให้ลบ', 'info'); return
+      showToast('Demo mode — ไม่มี endpoint', 'info'); return
     }
 
+    setClearing(true)
     try {
+      let deleted = 0
       for (const rec of responses) {
-        await fetch(SHEET_ENDPOINT, {
+        const res  = await fetch(SHEET_ENDPOINT, {
           method: 'POST',
           body: JSON.stringify({ action: 'delete', id: rec.id }),
         })
+        const json = await res.json()
+        if (json.ok) deleted++
       }
-      showToast('ล้างข้อมูลเรียบร้อย!', 'success')
+      showToast(`ลบข้อมูล ${deleted} รายการเรียบร้อย!`, 'success')
       refetch?.()
     } catch {
       showToast('เกิดข้อผิดพลาดในการลบ', 'error')
+    } finally {
+      setClearing(false)
     }
   }
 
-  // ── Chart shared options ─────────────────────────────────────
   const legendOpts = {
     labels: { color: LABEL_COLOR, font: { family: 'IBM Plex Sans Thai', size: 11 } },
   }
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+
       <AdminPanel visible={adminVisible} responses={responses} onClear={handleClear} />
 
-      {/* Header */}
-      <header className="text-center mb-8 animate-fade-in">
-        <h1 className="text-fluid-3xl font-bold text-white mb-2">📊 Dashboard Analitik</h1>
-        <p className="text-teal-200/70 text-fluid-sm">ผลวิเคราะห์ความคืบหน้าการใช้งาน EDMS</p>
-        <p className="text-teal-200/40 text-fluid-xs mt-1 font-mono">
+      {/* ── Dashboard Header ──────────────────────────────────── */}
+      <header className="text-center mb-10 animate-fade-in">
+        {/* Decorative line above title */}
+        <div className="flex items-center gap-4 justify-center mb-5">
+          <div className="h-px flex-1 max-w-16 bg-gradient-to-r from-transparent to-teal-400/40" />
+          <span className="text-teal-400/60 text-fluid-xs font-mono tracking-widest uppercase">Analytics</span>
+          <div className="h-px flex-1 max-w-16 bg-gradient-to-l from-transparent to-teal-400/40" />
+        </div>
+
+        <h1 className="text-fluid-3xl font-bold text-white mb-2">
+          📊 <span className="text-shimmer">Dashboard</span> การวิเคราะห์
+        </h1>
+        <p className="text-teal-200/60 text-fluid-sm">ผลวิเคราะห์ความคืบหน้าการใช้งาน EDMS</p>
+        <p className="text-teal-200/30 text-fluid-xs mt-1 font-mono">
           อัปเดต: {new Date().toLocaleString('th-TH')}
         </p>
-        {/* Refresh button */}
-        <button
-          onClick={() => { refetch?.(); showToast('รีเฟรชข้อมูลแล้ว', 'info') }}
-          className="mt-3 px-4 py-2 glass rounded-xl text-fluid-xs text-teal-200 hover:bg-white/10 transition-colors touch-target"
-        >
-          🔄 รีเฟรช
-        </button>
+
+        {/* Action buttons */}
+        <div className="flex items-center justify-center gap-3 mt-5 flex-wrap">
+          {/* Refresh */}
+          <button
+            onClick={() => { refetch?.(); showToast('รีเฟรชข้อมูลแล้ว', 'info') }}
+            className="flex items-center gap-2 px-5 py-2.5 glass rounded-xl text-fluid-sm text-teal-200 hover:bg-white/10 transition-all duration-200 touch-target"
+          >
+            🔄 รีเฟรช
+          </button>
+
+          {/* ── Clear test data button — prominent, always visible ── */}
+          <button
+            onClick={handleClear}
+            disabled={clearing || responses.length === 0}
+            className={`
+              flex items-center gap-2 px-5 py-2.5 rounded-xl text-fluid-sm font-semibold
+              border transition-all duration-200 touch-target
+              ${responses.length === 0
+                ? 'opacity-40 cursor-not-allowed border-white/10 text-white/40 bg-transparent'
+                : 'glass-danger text-red-300 hover:bg-red-500/20 hover:border-red-400/40 hover:text-red-200 active:scale-95'
+              }
+            `}
+          >
+            {clearing ? (
+              <>
+                <span className="w-3.5 h-3.5 border-2 border-red-300/30 border-t-red-300 rounded-full animate-spin" />
+                กำลังลบ...
+              </>
+            ) : (
+              <>🗑️ ล้างข้อมูลทดสอบ {responses.length > 0 && <span className="opacity-60">({responses.length})</span>}</>
+            )}
+          </button>
+        </div>
       </header>
 
-      {/* KPI stats — 2→4 col */}
+      {/* KPI Stats */}
       <StatHeader responses={responses} />
 
       {/* Charts — 1→2 col */}
@@ -103,7 +146,7 @@ export default function AnalyticsView({ responses, adminVisible, refetch }) {
           <Doughnut
             data={{
               labels: Object.keys(adoptionData),
-              datasets: [{ data: Object.values(adoptionData), backgroundColor: TEAL_PALETTE, borderColor: 'rgba(255,255,255,0.05)', borderWidth: 1 }],
+              datasets: [{ data: Object.values(adoptionData), backgroundColor: TEAL_PALETTE, borderColor: 'rgba(255,255,255,0.04)', borderWidth: 1 }],
             }}
             options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { ...legendOpts, position: 'bottom' } } }}
           />
@@ -113,7 +156,7 @@ export default function AnalyticsView({ responses, adminVisible, refetch }) {
           <Bar
             data={{
               labels: Object.keys(freqData),
-              datasets: [{ label: 'จำนวน', data: Object.values(freqData), backgroundColor: '#14b8a6', borderRadius: 6, borderSkipped: false }],
+              datasets: [{ label: 'จำนวน', data: Object.values(freqData), backgroundColor: 'rgba(20,184,166,0.75)', borderRadius: 6, borderSkipped: false }],
             }}
             options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: baseScales }}
           />
@@ -133,7 +176,7 @@ export default function AnalyticsView({ responses, adminVisible, refetch }) {
           <Bar
             data={{
               labels: Object.keys(deptData),
-              datasets: [{ label: 'จำนวน', data: Object.values(deptData), backgroundColor: '#0d9488', borderRadius: 6, borderSkipped: false }],
+              datasets: [{ label: 'จำนวน', data: Object.values(deptData), backgroundColor: 'rgba(13,148,136,0.75)', borderRadius: 6, borderSkipped: false }],
             }}
             options={{
               responsive: true, maintainAspectRatio: false, indexAxis: 'y',
@@ -160,8 +203,8 @@ export default function AnalyticsView({ responses, adminVisible, refetch }) {
 
       <ExportSection responses={responses} />
 
-      <footer className="text-center mt-12 text-teal-200/30 text-fluid-xs pb-4 font-mono">
-        EDMS Analytics Dashboard · {new Date().getFullYear()}
+      <footer className="text-center mt-12 text-teal-200/20 text-fluid-xs pb-6 font-mono tracking-wider">
+        EDMS Analytics · Powered by Google Sheets · {new Date().getFullYear()}
       </footer>
     </div>
   )
@@ -173,17 +216,20 @@ function Recommendations({ responses }) {
   const avgSat    = total > 0 ? (responses.reduce((s, r) => s + (Number(r.q9_overall) || 0), 0) / total) : 0
 
   const recs = []
-  if (total === 0)              recs.push('📊 ยังไม่มีข้อมูล รอการตอบแบบสอบถาม')
-  else if (adoptRate < 50)     recs.push('🎯 ต้องเพิ่มการส่งเสริม Adoption')
-  if (avgSat > 0 && avgSat < 3) recs.push('⚠️ ความพึงพอใจต่ำ ต้องปรับปรุง UX')
-  if (total > 0 && total < 20) recs.push('📊 ยังต้องรวบรวมข้อมูลเพิ่มเติม')
-  if (adoptRate > 70 && avgSat > 3.5) recs.push('🎉 ความคืบหน้าดี ต่อไปสนับสนุนระดับสูง')
-  if (recs.length === 0)        recs.push('✅ ดำเนินการตามแผนได้สำเร็จ')
+  if (total === 0)               recs.push({ icon: '📊', text: 'ยังไม่มีข้อมูล รอการตอบแบบสอบถาม' })
+  else if (adoptRate < 50)      recs.push({ icon: '🎯', text: 'ต้องเพิ่มการส่งเสริม Adoption' })
+  if (avgSat > 0 && avgSat < 3) recs.push({ icon: '⚠️', text: 'ความพึงพอใจต่ำ ต้องปรับปรุง UX' })
+  if (total > 0 && total < 20)  recs.push({ icon: '📊', text: 'ยังต้องรวบรวมข้อมูลเพิ่มเติม' })
+  if (adoptRate > 70 && avgSat > 3.5) recs.push({ icon: '🎉', text: 'ความคืบหน้าดี ต่อไปสนับสนุนระดับสูง' })
+  if (recs.length === 0)         recs.push({ icon: '✅', text: 'ดำเนินการตามแผนได้สำเร็จ' })
 
   return (
-    <ul className="space-y-2">
+    <ul className="space-y-3">
       {recs.map((r, i) => (
-        <li key={i} className="text-fluid-sm text-white/80">{r}</li>
+        <li key={i} className="flex items-start gap-2 text-fluid-sm text-white/80">
+          <span className="flex-shrink-0">{r.icon}</span>
+          <span>{r.text}</span>
+        </li>
       ))}
     </ul>
   )
