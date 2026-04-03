@@ -112,18 +112,11 @@ export default function AnalyticsView({ responses, adminVisible, refetch }) {
             🔄 รีเฟรช
           </button>
 
-          {/* ── Clear test data button — prominent, always visible ── */}
+          {/* ── Clear test data button — always fully visible ──── */}
           <button
             onClick={handleClear}
-            disabled={clearing || responses.length === 0}
-            className={`
-              flex items-center gap-2 px-5 py-2.5 rounded-xl text-fluid-sm font-semibold
-              border transition-all duration-200 touch-target
-              ${responses.length === 0
-                ? 'opacity-40 cursor-not-allowed border-white/10 text-white/40 bg-transparent'
-                : 'glass-danger text-red-300 hover:bg-red-500/20 hover:border-red-400/40 hover:text-red-200 active:scale-95'
-              }
-            `}
+            disabled={clearing}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-fluid-sm font-semibold border transition-all duration-200 touch-target glass-danger text-red-300 hover:bg-red-500/20 hover:border-red-400/40 hover:text-red-200 active:scale-95 disabled:opacity-60"
           >
             {clearing ? (
               <>
@@ -131,7 +124,14 @@ export default function AnalyticsView({ responses, adminVisible, refetch }) {
                 กำลังลบ...
               </>
             ) : (
-              <>🗑️ ล้างข้อมูลทดสอบ {responses.length > 0 && <span className="opacity-60">({responses.length})</span>}</>
+              <>
+                🗑️ ล้างข้อมูลทดสอบ
+                {responses.length > 0 && (
+                  <span className="ml-1 bg-red-500/30 text-red-200 text-fluid-xs px-2 py-0.5 rounded-full font-bold">
+                    {responses.length}
+                  </span>
+                )}
+              </>
             )}
           </button>
         </div>

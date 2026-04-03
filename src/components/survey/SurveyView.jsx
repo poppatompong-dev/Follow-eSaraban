@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import Header from './Header'
+import Intro from './Intro'
 import Section1 from './Section1'
 import Section2 from './Section2'
 import Section3 from './Section3'
@@ -10,6 +12,7 @@ import { SHEET_ENDPOINT } from '../../lib/api'
 // Orchestrates the multi-step survey form
 export default function SurveyView({ form, config, responseCount, onSubmitSuccess }) {
   const showToast = useToast()
+  const [showIntro, setShowIntro] = useState(true)
   const { formData, currentSection, submitted, isSubmitting,
           setField, toggleCheckbox, goSection,
           setSubmitted, setIsSubmitting, reset } = form
@@ -60,12 +63,19 @@ export default function SurveyView({ form, config, responseCount, onSubmitSucces
     }
   }
 
+  function resetAndBack() {
+    reset()
+    setShowIntro(true)
+  }
+
   const goNext = (n) => goSection(n, showToast)
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 md:py-12">
-      {submitted ? (
-        <ThankYou onReset={reset} />
+      {showIntro ? (
+        <Intro responseCount={responseCount} onStart={() => setShowIntro(false)} />
+      ) : submitted ? (
+        <ThankYou onReset={resetAndBack} />
       ) : (
         <>
           <Header
