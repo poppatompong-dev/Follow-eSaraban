@@ -34,7 +34,7 @@ export default function Intro({ responseCount, onStart }) {
         <div className="text-center mb-6">
           <div className="flex items-center gap-3 justify-center mb-3">
             <div className="h-px flex-1 max-w-10 bg-gradient-to-r from-transparent to-teal-400/40" />
-            <span className="text-teal-400/60 text-fluid-xs font-mono tracking-widest uppercase">EDMS Survey 2568</span>
+            <span className="text-teal-400/60 text-fluid-xs font-mono tracking-widest uppercase">EDMS Survey 2569</span>
             <div className="h-px flex-1 max-w-10 bg-gradient-to-l from-transparent to-teal-400/40" />
           </div>
           <h1 className="text-fluid-2xl font-bold text-white leading-snug mb-3">
@@ -118,7 +118,7 @@ export default function Intro({ responseCount, onStart }) {
       </div>
 
       <footer className="text-center mt-8 text-teal-200/20 text-fluid-xs pb-4 font-mono tracking-wider">
-        EDMS · เทศบาลเมืองอุทัยธานี · 2568
+        EDMS · เทศบาลเมืองอุทัยธานี · 2569
       </footer>
     </div>
   )

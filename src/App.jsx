@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ToastProvider }  from './context/ToastContext'
 import { useResponses }   from './hooks/useResponses'
 import { useSurveyForm }  from './hooks/useSurveyForm'
+import { requestAdminCode } from './lib/admin'
 import AdminBar           from './components/AdminBar'
 import TabNav             from './components/TabNav'
 import SurveyView         from './components/survey/SurveyView'
@@ -94,16 +95,56 @@ function Background() {
 export default function App() {
   const [activeTab,    setActiveTab]    = useState('survey')
   const [adminVisible, setAdminVisible] = useState(false)
+  const [adminUnlocked, setAdminUnlocked] = useState(false)
+  const [secretTapCount, setSecretTapCount] = useState(0)
+  const [lastSecretTapAt, setLastSecretTapAt] = useState(0)
 
   const { responses, refetch } = useResponses()
   const form = useSurveyForm()
+
+  async function handleSubmitSuccess() {
+    await refetch()
+    setActiveTab('analytics')
+  }
+
+  function handleSecretAdminTap() {
+    const now = Date.now()
+    const nextCount = now - lastSecretTapAt > 1500 ? 1 : secretTapCount + 1
+
+    setLastSecretTapAt(now)
+    setSecretTapCount(nextCount)
+
+    if (nextCount < 5) return
+
+    setSecretTapCount(0)
+
+    if (!requestAdminCode('unlock admin mode')) {
+      window.alert('Incorrect admin code.')
+      return
+    }
+
+    setAdminUnlocked(true)
+    setAdminVisible(true)
+    setActiveTab('analytics')
+  }
+
+  function handleExitAdminMode() {
+    setAdminUnlocked(false)
+    setAdminVisible(false)
+    setSecretTapCount(0)
+  }
 
   return (
     <ToastProvider>
       <Background />
 
       <div className="relative min-h-dvh w-full overflow-x-hidden">
-        <AdminBar onTogglePanel={() => setAdminVisible(v => !v)} />
+        <AdminBar
+          unlocked={adminUnlocked}
+          onSecretTap={handleSecretAdminTap}
+          onTogglePanel={() => setAdminVisible(v => !v)}
+          onExit={handleExitAdminMode}
+        />
         <TabNav activeTab={activeTab} onSwitch={setActiveTab} />
 
         <main>
@@ -112,12 +153,12 @@ export default function App() {
               form={form}
               config={null}
               responseCount={responses.length}
-              onSubmitSuccess={refetch}
+              onSubmitSuccess={handleSubmitSuccess}
             />
           ) : (
             <AnalyticsView
               responses={responses}
-              adminVisible={adminVisible}
+              adminVisible={adminUnlocked && adminVisible}
               refetch={refetch}
             />
           )}

@@ -7,6 +7,7 @@ import {
 import { Doughnut, Bar } from 'react-chartjs-2'
 import StatHeader    from './StatHeader'
 import AdminPanel    from './AdminPanel'
+import AdminRecordsTable from './AdminRecordsTable'
 import ChartCard     from './ChartCard'
 import InsightCard   from './InsightCard'
 import FeedbackList  from './FeedbackList'
@@ -36,6 +37,7 @@ function buildFreqData(responses, field, opts) {
 export default function AnalyticsView({ responses, adminVisible, refetch }) {
   const showToast = useToast()
   const [clearing, setClearing] = useState(false)
+  const [deletingId, setDeletingId] = useState(null)
   const total = responses.length
 
   const adoptionData = buildFreqData(responses, 'q1_adoption', Q1_OPTS)
@@ -82,6 +84,43 @@ export default function AnalyticsView({ responses, adminVisible, refetch }) {
     }
   }
 
+  async function handleDeleteRecord(record) {
+    if (!record?.id) {
+      showToast('Record id is missing', 'error')
+      return
+    }
+
+    const confirmed = confirm(
+      `Delete this survey row?\n\nDepartment: ${record.department || '-'}\nRole: ${record.role || '-'}`
+    )
+    if (!confirmed) return
+
+    if (!SHEET_ENDPOINT || SHEET_ENDPOINT === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+      showToast('Demo mode — no endpoint configured', 'info')
+      return
+    }
+
+    setDeletingId(record.id)
+    try {
+      const res = await fetch(SHEET_ENDPOINT, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'delete', id: record.id }),
+      })
+      const json = await res.json()
+
+      if (!json.ok) {
+        throw new Error(json.error || 'Delete failed')
+      }
+
+      showToast('Row deleted successfully', 'success')
+      await refetch?.()
+    } catch (error) {
+      showToast(error.message || 'Failed to delete row', 'error')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   const legendOpts = {
     labels: { color: LABEL_COLOR, font: { family: 'IBM Plex Sans Thai', size: 11 } },
   }
@@ -90,6 +129,12 @@ export default function AnalyticsView({ responses, adminVisible, refetch }) {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 md:py-12">
 
       <AdminPanel visible={adminVisible} responses={responses} onClear={handleClear} />
+      <AdminRecordsTable
+        visible={adminVisible}
+        responses={responses}
+        deletingId={deletingId}
+        onDelete={handleDeleteRecord}
+      />
 
       {/* ── Dashboard Header ──────────────────────────────────── */}
       <header className="text-center mb-10 animate-fade-in">
@@ -116,29 +161,6 @@ export default function AnalyticsView({ responses, adminVisible, refetch }) {
             className="flex items-center gap-2 px-5 py-2.5 glass rounded-xl text-fluid-sm text-teal-200 hover:bg-white/10 transition-all duration-200 touch-target"
           >
             🔄 รีเฟรช
-          </button>
-
-          {/* ── Clear test data button — always fully visible ──── */}
-          <button
-            onClick={handleClear}
-            disabled={clearing}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-fluid-sm font-semibold border transition-all duration-200 touch-target glass-danger text-red-300 hover:bg-red-500/20 hover:border-red-400/40 hover:text-red-200 active:scale-95 disabled:opacity-60"
-          >
-            {clearing ? (
-              <>
-                <span className="w-3.5 h-3.5 border-2 border-red-300/30 border-t-red-300 rounded-full animate-spin" />
-                กำลังลบ...
-              </>
-            ) : (
-              <>
-                🗑️ ล้างข้อมูลทดสอบ
-                {responses.length > 0 && (
-                  <span className="ml-1 bg-red-500/30 text-red-200 text-fluid-xs px-2 py-0.5 rounded-full font-bold">
-                    {responses.length}
-                  </span>
-                )}
-              </>
-            )}
           </button>
         </div>
       </header>

@@ -53,7 +53,7 @@ export default function SurveyView({ form, config, responseCount, onSubmitSucces
       if (json.ok) {
         setSubmitted(true)
         showToast('บันทึกข้อมูลเรียบร้อย!', 'success')
-        onSubmitSuccess?.()   // trigger refetch in parent
+        await onSubmitSuccess?.()
       } else {
         showToast('เกิดข้อผิดพลาด: ' + (json.error || 'unknown'), 'error')
       }
@@ -126,7 +126,7 @@ export default function SurveyView({ form, config, responseCount, onSubmitSucces
       )}
 
       <footer className="text-center mt-12 text-teal-200/30 text-fluid-xs pb-4 font-mono">
-        EDMS Digital Survey System · 2025
+        EDMS Digital Survey System · 2026
       </footer>
     </div>
   )
